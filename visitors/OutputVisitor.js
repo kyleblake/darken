@@ -287,6 +287,9 @@ class OutputVisitor {
   STRING_LITERAL({node: {loc: {source}}}, state) {
     addToSyntax(state, source);    
   }
+  STOP(path, state) {
+    addToSyntax(state, 'stop');
+  }  
   TypeAnnotation({node:{value}}, state) {
     addToSyntax(state, 'as', value);    
   }
