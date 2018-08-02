@@ -9,7 +9,7 @@ const {
 } = require('./visitors/OutputVisitor');
 const {
   traverse
-} = require('./visitors/visitorTraverser');
+} = require('./traverser/visitorTraverser');
 const {
   manifestParser
 } = require('./parser/manifestParser');
