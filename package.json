@@ -1,0 +1,31 @@
+{
+  "name": "@digitalprimates/darken",
+  "version": "0.0.5",
+  "description": "Code obfuscator for Roku BrightScript",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DigitalPrimates/darken.git"
+  },
+  "keywords": [
+    "BrightScript",
+    "Obfuscate"
+  ],
+  "author": "Michael Labriola <labriola@digitalprimates.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DigitalPrimates/darken/issues"
+  },
+  "homepage": "https://github.com/DigitalPrimates/darken#readme",
+  "dependencies": {
+    "@roku-road/bright": "^1.2.9",
+    "ast-traverse": "^0.1.1",
+    "lodash": "^4.17.10"
+  }
+}
