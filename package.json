@@ -24,7 +24,6 @@
   },
   "homepage": "https://github.com/DigitalPrimates/darken#readme",
   "dependencies": {
-    "@roku-road/bright": "git+https://git@github.com:DigitalPrimates/bright.git",
     "ast-traverse": "^0.1.1",
     "lodash": "^4.17.10"
   }
