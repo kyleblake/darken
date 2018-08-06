@@ -20,8 +20,9 @@ const unbufferedTokens = {
   '\\': true,
   '*': true,
   '\n': true,
-  ' ': true
-}
+  ' ': true,
+  '\'': true
+};
 
 const addWithBuffer = (syntax, value) => {
   if (!value || !value.slice) debugger;
@@ -124,7 +125,12 @@ class OutputVisitor {
     return false;
   }
   Comment(path, state) {
+    const {node: {value}} = path;
+    addToSyntax(state, "'", value, "\n");
     return false;
+  }
+  DimStatement(path, state) {
+    addToSyntax(state, 'dim');
   }
   DotMemberExpression(path, state) {
   }
@@ -166,6 +172,11 @@ class OutputVisitor {
   FunctionExpression(path, state) {
     return toSubFuncDefinition('function')(path, state, this);
   }
+  GoToStatement(path, state) {
+    const {node: {id: {name}}} = path;
+    addToSyntax(state, 'goto', name);
+    return false;
+  }
   GREATER_THAN(path, state) {
     addToSyntax(state, '>');
   }
@@ -184,6 +195,11 @@ class OutputVisitor {
     //still need to fix this.... bad way to determine block form
 
     addToSyntax(state, 'if', test, consequent, withNothing(alternate), blockForm?'end if':'');
+    return false;
+  }
+  LabeledStatement(path, state) {
+    const {node: {label: {name}}} = path;
+    addToSyntax(state, name, ':')
     return false;
   }
   LESS_THAN(path, state) {
@@ -259,9 +275,11 @@ class OutputVisitor {
   PERIOD(path, state) {
     addToSyntax(state, '.');
   }
-  PrintStatement({get}, state) {
+  PrintStatement(path, state) {
+    const {get} = path
     const value = toSyntax(get('value'), this);
 
+    // TODO: Is there a reason why this is a ? instead of 'print'?
     addToSyntax(state, '?', withSemiColon(value));
     return false;
   }
@@ -286,6 +304,9 @@ class OutputVisitor {
   }
   STRING_LITERAL({node: {loc: {source}}}, state) {
     addToSyntax(state, source);    
+  }
+  StopStatement(path, state) {
+    addToSyntax(state, 'stop', '\n')
   }
   STOP(path, state) {
     addToSyntax(state, 'stop');
