@@ -224,6 +224,9 @@ class OutputVisitor {
   LESS_THAN_EQUAL(path, state) {
     addToSyntax(state, '<=');
   }
+  LibraryStatement(path, state) {
+    addToSyntax(state, 'library');
+  }
   Literal({node:{raw, value}}, state) {
     addToSyntax(state, value);
   }
