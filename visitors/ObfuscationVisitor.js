@@ -160,7 +160,19 @@ class ObfuscationVisitor {
   }
   BlockStatement(path, state) {
   }
-  CallExpression(path, state) {
+  CallExpression({get}, state) {
+    const {
+      syntax
+    } = get('callee').traverse(outputVisitor) || {};
+
+    if (syntax.match(/observeField/i)) {
+      get('args').traverse({
+        Literal: (p, s) => {
+          const { idx } = p;
+          if ( idx ) renameLiteral(p, state);
+        }
+      })
+    }
   }
   Comment(path, state) {
     // path.traverse({
