@@ -202,14 +202,17 @@ class OutputVisitor {
   Identifier({node:{name}}, state) {
     addToSyntax(state, name);
   }
-  IfStatement({get}, state) {
+  IfStatement(path, state) {
+    const {get, node:{consequent: {type}}} = path;
     //logic from here needs to apply to else if as well... refactor?
     const test = toSyntax(get('test'), this);
     const consequent = toSyntax(get('consequent'), this);
     const alternate = toSyntax(get('alternate'), this);
-    const blockForm = (alternate && alternate.length) || consequent.includes('\n');
+    const blockForm = type === 'BlockStatement';
     //still need to fix this.... bad way to determine block form
 
+    //NOTE: Brightscript documentation states that "then" is an optional keyword for
+    //      IF, ELSEIF, THEN, ENDIF block
     addToSyntax(state, 'if', test, consequent, withNothing(alternate), blockForm?'end if':'');
     return false;
   }
