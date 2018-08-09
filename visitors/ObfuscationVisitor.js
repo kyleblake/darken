@@ -149,7 +149,7 @@ class ObfuscationVisitor {
       syntax: leftSyntax = ''
     } = get('left').traverse(outputVisitor) || {};
 
-    if (leftSyntax.includes('functionName')) {
+    if (leftSyntax.match(/functionName/i)) {
       get('right').traverse({
         Literal: (p, s) => {
           renameLiteral(p, state);
