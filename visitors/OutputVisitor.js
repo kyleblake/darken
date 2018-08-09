@@ -220,6 +220,9 @@ class OutputVisitor {
     addToSyntax(state, 'if', test, consequent, withNothing(alternate), blockForm?'end if':'');
     return false;
   }
+  INCREMENT(path, state) {
+    addToSyntax(state, '++');
+  }
   LabeledStatement(path, state) {
     const {node: {label: {name}}} = path;
     //TODO: Seems to be treating the line following the label as the body of the label statement.
