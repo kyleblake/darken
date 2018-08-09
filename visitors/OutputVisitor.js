@@ -92,7 +92,7 @@ class OutputVisitor {
     return toOperatorExpression(path, state, this);
   }
   AND(path, state) {
-    addToSyntax(state, 'and');
+    addToSyntax(state, ' and');
   }
   Arguments({get}, state) {
     const propertiesSyntax = toSyntax(get('param'), this);
@@ -135,12 +135,13 @@ class OutputVisitor {
   DotMemberExpression(path, state) {
   }
   ElseStatement(path, state) {
-    addToSyntax(state, 'else');
+    addToSyntax(state, 'else ');
   }
   ElseIfStatement({get}, state) {
     const test = toSyntax(get('test'), this);
     const body = toSyntax(get('body'), this);
-
+    //NOTE: Brightscript documentation states that "then" is an optional keyword for
+    //      IF, ELSEIF, THEN, ENDIF block
     addToSyntax(state, 'else if', test, body);
     return false;
   }
@@ -312,7 +313,7 @@ class OutputVisitor {
     addToSyntax(state, 'stop');
   }  
   TypeAnnotation({node:{value}}, state) {
-    addToSyntax(state, 'as', value);    
+    addToSyntax(state, ' as', value);
   }
   UnaryExpression(path, state) {
   }
