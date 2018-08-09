@@ -105,7 +105,8 @@ class OutputVisitor {
     return false;
   }
   ArrayExpression({get}, state) {
-    addToSyntax(state, '[', toSyntax(get('elements'), this), ']');
+    const elements = toSyntax(get('elements'), this);
+    addToSyntax(state, '[', elements, ']');
     return false;
   }
   AssignmentExpression(path, state) {
@@ -130,6 +131,9 @@ class OutputVisitor {
     const {node: {value}} = path;
     addToSyntax(state, "'", value, "\n");
     return false;
+  }
+  DECREMENT(path, state) {
+    addToSyntax(state, '--');
   }
   DimStatement(path, state) {
     addToSyntax(state, 'dim');
@@ -257,6 +261,27 @@ class OutputVisitor {
     addToSyntax(state, '{', withComma(properties), '}');
     return false;
   }
+  OP_ASSIGNMENT_ADD(path, state) {
+    addToSyntax(state, '+=');
+  }
+  OP_ASSIGNMENT_SUBTRACT(path, state) {
+    addToSyntax(state, '-=');
+  }
+  OP_ASSIGNMENT_DIVISION(path, state) {
+    addToSyntax(state, '/=');
+  }
+  OP_ASSIGNMENT_INTEGER_DIVISION(path, state) {
+    addToSyntax(state, '\\=');
+  }
+  OP_ASSIGNMENT_MULTIPLY(path, state) {
+    addToSyntax(state, '*=');
+  }
+  OP_ASSIGNMENT_BITSHIFT_LEFT(path, state) {
+    addToSyntax(state, '<<=');
+  }
+  OP_ASSIGNMENT_BITSHIFT_RIGHT(path, state) {
+    addToSyntax(state, '>>=');
+  }
   OP_MINUS(path, state) {
     addToSyntax(state, '-');
   }
@@ -305,6 +330,13 @@ class OutputVisitor {
 
     // TODO: Is there a reason why this is a ? instead of 'print'?
     addToSyntax(state, '?', withSemiColon(value));
+    return false;
+  }
+  PostfixExpression(path, state) {
+    const {get} = path;
+    const arg = toSyntax(get('argument'), this);
+    const operator = toSyntax(get('operator'), this);
+    addToSyntax(state, arg, operator);
     return false;
   }
   Program(path, state) {
