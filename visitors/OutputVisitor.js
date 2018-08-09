@@ -159,6 +159,14 @@ class OutputVisitor {
   EmptyStatement(path, state) {
     addToSyntax(state, '\n');
   }
+  ForEachStatement(path, state) {
+    const {get} = path;
+    const counter = toSyntax(get('counter'), this);
+    const countExpression = toSyntax(get('countExpression'), this);
+    const body = toSyntax(get('body'), this);
+    addToSyntax(state, 'for each', counter, 'in', countExpression, body, 'end for');
+    return false;
+  }
   ForStatement(path, state) {
     const {get} = path;
     const test = toSyntax(get('test'), this);
