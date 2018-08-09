@@ -106,7 +106,7 @@ class OutputVisitor {
   }
   ArrayExpression({get}, state) {
     addToSyntax(state, '[', toSyntax(get('elements'), this), ']');
-    return false;  
+    return false;
   }
   AssignmentExpression(path, state) {
     return toOperatorExpression(path, state, this);
@@ -117,7 +117,7 @@ class OutputVisitor {
   BlockStatement({get}, state) {
     const body = toSyntax(get('body'), this);
     addToSyntax(state, '\n', withNothing(body), '\n');
-    return false;  
+    return false;
   }
   CallExpression({get}, state) {
     const callee = toSyntax(get('callee'), this);
@@ -283,7 +283,7 @@ class OutputVisitor {
     const type = toSyntax(get('TypeAnnotation'), this);
     const value = toSyntax(get('value'), this);
 
-    addToSyntax(state, name, type, value?`=${value}`:'');
+    addToSyntax(state, name, value?`=${value}`:'', type);
     return false;
   }
   ParameterList({get}, state) {
@@ -321,13 +321,16 @@ class OutputVisitor {
   }
   ReturnStatement(path, state) {
     //when we are not in a block, we need to have a space before us
-    addToSyntax(state, 'return');
+    const returnExpression = toSyntax(path.get('argument'), this);
+    const trailingComments = toSyntax(path.get('trailingComments'), this);
+    addToSyntax(state, 'return', returnExpression, ' ', trailingComments);
+    return false;
   }
   SubDeclaration(path, state) {
     return toSubFuncDefinition('sub')(path, state, this);
   }
   STRING_LITERAL({node: {loc: {source}}}, state) {
-    addToSyntax(state, source);    
+    addToSyntax(state, source);
   }
   StopStatement(path, state) {
     addToSyntax(state, 'stop', '\n')
