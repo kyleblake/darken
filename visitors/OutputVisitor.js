@@ -335,8 +335,7 @@ class OutputVisitor {
     addToSyntax(state, '?', withSemiColon(value));
     return false;
   }
-  PostfixExpression(path, state) {
-    const {get} = path;
+  PostfixExpression({get}, state) {
     const arg = toSyntax(get('argument'), this);
     const operator = toSyntax(get('operator'), this);
     addToSyntax(state, arg, operator);
