@@ -153,6 +153,9 @@ class OutputVisitor {
   EQUAL({node: {value}}, state) {
     addToSyntax(state, '=');
   }
+  EXIT_FOR(path, state) {
+    addToSyntax(state, 'exit for')
+  }
   EXIT_WHILE(path, state) {
     addToSyntax(state, 'exit while');
   }
@@ -173,8 +176,10 @@ class OutputVisitor {
     const body = toSyntax(get('body'), this);
     const counter = toSyntax(get('counter'), this);
     const init = toSyntax(get('init'), this);
+    const update = toSyntax(get('update'), this);
+    const explicitStep = update ? `step ${update}` : undefined;
 
-    addToSyntax(state, 'For', counter, (counter && init.length)?'=':'', init, 'to', test, body, 'end For');
+    addToSyntax(state, 'for', counter, (counter && init.length)?'=':'', init, 'to', test, explicitStep, body, 'end for');
     return false;
   }
   FunctionDeclaration(path, state) {
