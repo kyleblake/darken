@@ -100,10 +100,12 @@ class OutputVisitor {
     return false;
   }
   ArrayElement(path, state) {
+    const element = toSyntax(path.get('value'), this);
+    addToSyntax(state, element);
+    return false;
   }
   ArrayExpression({get}, state) {
-    const elements = toSyntax(get('elements'), this);
-    addToSyntax(state, '[', withComma(elements), ']');
+    addToSyntax(state, '[', toSyntax(get('elements'), this), ']');
     return false;  
   }
   AssignmentExpression(path, state) {
