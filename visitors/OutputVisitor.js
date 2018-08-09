@@ -218,7 +218,9 @@ class OutputVisitor {
   }
   LabeledStatement(path, state) {
     const {node: {label: {name}}} = path;
-    addToSyntax(state, name, ':')
+    //TODO: Seems to be treating the line following the label as the body of the label statement.
+    const body = toSyntax(path.get('body'), this);
+    addToSyntax(state, name, ':\n', body)
     return false;
   }
   LESS_THAN(path, state) {
