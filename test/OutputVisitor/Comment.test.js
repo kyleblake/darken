@@ -1,21 +1,10 @@
-const { expect } = require('chai');
-const {
-  OutputVisitor,
-  traverse
-} = require('../../index');
-const { ast } = require('@roku-road/bright');
-
-const compareTraversal = (testSrc, expected) => {
-  const expectedLines = expected.split('\n');
-  const {syntax: result} = traverse(ast(testSrc))(new OutputVisitor, {syntax: ''});
-  result.split('\n').forEach((line, i) => expect(line).to.equal(expectedLines[i]));
-}
+const compareTraversal = require('./compareTraversal');
 
 describe('Comment', function() {
-  it('should generate comments', function() {
-    compareTraversal("' test comment", "'test comment\n");
+  it('should generate correct syntax comments', function() {
+    compareTraversal("' test comment", "'test comment\n", 'Comment');
   });
   it('should work with "rem"', function() {
-    compareTraversal("rem test comment", "'test comment\n");
+    compareTraversal("rem test comment", "'test comment\n", 'Comment');
   });
 });

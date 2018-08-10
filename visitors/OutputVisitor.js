@@ -171,7 +171,7 @@ class OutputVisitor {
     const counter = toSyntax(get('counter'), this);
     const countExpression = toSyntax(get('countExpression'), this);
     const body = toSyntax(get('body'), this);
-    addToSyntax(state, 'for each', counter, 'in', countExpression, body, 'end for');
+    addToSyntax(state, 'for each', counter, 'in ', countExpression, body, 'end for');
     return false;
   }
   ForStatement(path, state) {
@@ -327,11 +327,9 @@ class OutputVisitor {
   PERIOD(path, state) {
     addToSyntax(state, '.');
   }
-  PrintStatement(path, state) {
-    const {get} = path
+  PrintStatement({get}, state) {
     const value = toSyntax(get('value'), this);
 
-    // TODO: Is there a reason why this is a ? instead of 'print'?
     addToSyntax(state, '?', withSemiColon(value));
     return false;
   }
@@ -343,7 +341,7 @@ class OutputVisitor {
   }
   Program(path, state) {
   }
-  Property({get, node}, state) {
+  Property({get}, state) {
     const key = toSyntax(get('key'), this);
     const value = toSyntax(get('value'), this);
 

@@ -1,31 +1,14 @@
-const { expect } = require('chai');
-const {
-  OutputVisitor,
-  traverse
-} = require('../../index');
-const { ast } = require('@roku-road/bright');
+const compareTraversal = require('./compareTraversal');
 
-const compareTraversal = (testSrc, expected) => {
-  const expectedLines = expected.split('\n');
-  const {syntax: result} = traverse(ast(testSrc))(new OutputVisitor, {syntax: ''});
-  result.split('\n').forEach((line, i) => expect(line).to.equal(expectedLines[i]));
-}
-
-describe('PostfixStatement', function() {
-  it('should handle Increment', function() {
-    const testSrc =
-    `sub test()
-      x++
-    end sub`;
-    const expected = 'sub test()\nx++\nend sub';
-    compareTraversal(testSrc, expected);
+describe('PostfixExpression', function() {
+  it('should generate correct syntax for increment', function() {
+    const testSrc = 'x++';
+    const expected = 'x++';
+    compareTraversal(testSrc, expected, 'PostfixExpression');
   });
-  it('should handle Decrement', function() {
-    const testSrc =
-    `sub test()
-      x--
-    end sub`;
-    const expected = 'sub test()\nx--\nend sub';
-    compareTraversal(testSrc, expected);
+  it('should generate correct syntax for decrement', function() {
+    const testSrc = 'x--'
+    const expected = 'x--';
+    compareTraversal(testSrc, expected, 'PostfixExpression');
   });
 });
