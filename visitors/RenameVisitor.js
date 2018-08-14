@@ -13,10 +13,22 @@ const updateIdentifier = identifier => newName => {
   identifier.name = newName;
 };
 
+const updateFunctionLiteral = identifier => newValue => {
+  identifier.raw = `"${newValue}"`;
+  identifier.value = `"${newValue}"`;
+};
+
 const toNewName = ({renames=[]}) => ({name}) => {
   const {src, dst} = renames.find(({src})=>src===name) || {};
 
   return dst && dst != src && dst;
+};
+
+const toNewValue = ({renames = []}) => ({value}) => {
+  const name = typeof(value) === 'string' ? value.replace(/\"/g, '') : value;
+  const { src, dst } = renames.find(({src}) => src === name) || {};
+
+  return dst && dst !== src && dst;
 };
 
 class RenameVisitor {
@@ -62,6 +74,11 @@ class RenameVisitor {
   IfStatement(path, state) {
   }
   Literal(path, state) {
+    const { node } = path;
+    const dst = toNewValue(state)(node)
+    if (dst) {
+      updateFunctionLiteral(node)(dst)
+    }
   }
   LogicExpression(path, state) {
   }

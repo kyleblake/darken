@@ -2,6 +2,10 @@ const {
   RenameVisitor
 } = require('./RenameVisitor');
 
+const {
+  OutputVisitor
+} = require('./OutputVisitor');
+
 const replaceNode = parent => originalNode => newNode => {
   for (let prop in parent) {
     if (parent[prop] === originalNode) {
@@ -43,7 +47,15 @@ const renameDeclaration = ({node: {id, type}, scope:{rename}}, {renamed})=>{
     const newRename = rename(id, `${toNewName(renamed)}`); //rename(id, `${id.name}2`);//
     renamed.push(newRename);
   }
-}
+};
+
+const renameLiteral = ({node: {value}, scope: {rename}}, {renamed}) => {
+  const name = value.replace(/\"/g, '');
+  if (shouldRename(renamed, {name})) {
+    const newRename = rename({name}, `${toNewName(renamed)}`);
+    renamed.push(newRename);
+  }
+};
 
 const toBooleanAssignmentExpression = value => {
   return {
@@ -120,6 +132,7 @@ const toNewLiteral = value => {
   return value;
 };
 
+const outputVisitor = new OutputVisitor()
 class ObfuscationVisitor {
   constructor() {
   }
@@ -131,11 +144,35 @@ class ObfuscationVisitor {
   }
   ArrayExpression(path, state) {
   }
-  AssignmentExpression(path, state) {
+  AssignmentExpression({get}, state) {
+    const {
+      syntax: leftSyntax = ''
+    } = get('left').traverse(outputVisitor) || {};
+
+    if (leftSyntax.match(/functionName/i)) {
+      get('right').traverse({
+        Literal: (p, s) => {
+          renameLiteral(p, state);
+        }
+      })
+      return false;
+    }
   }
   BlockStatement(path, state) {
   }
-  CallExpression(path, state) {
+  CallExpression({get}, state) {
+    const {
+      syntax
+    } = get('callee').traverse(outputVisitor) || {};
+
+    if (syntax.match(/observeField/i)) {
+      get('args').traverse({
+        Literal: (p, s) => {
+          const { idx } = p;
+          if ( idx ) renameLiteral(p, state);
+        }
+      })
+    }
   }
   Comment(path, state) {
     // path.traverse({
