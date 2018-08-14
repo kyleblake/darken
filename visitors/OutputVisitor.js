@@ -20,8 +20,9 @@ const unbufferedTokens = {
   '\\': true,
   '*': true,
   '\n': true,
-  ' ': true
-}
+  ' ': true,
+  '\'': true
+};
 
 const addWithBuffer = (syntax, value) => {
   if (!value || !value.slice) debugger;
@@ -91,7 +92,7 @@ class OutputVisitor {
     return toOperatorExpression(path, state, this);
   }
   AND(path, state) {
-    addToSyntax(state, 'and');
+    addToSyntax(state, ' and');
   }
   Arguments({get}, state) {
     const propertiesSyntax = toSyntax(get('param'), this);
@@ -99,11 +100,14 @@ class OutputVisitor {
     return false;
   }
   ArrayElement(path, state) {
+    const element = toSyntax(path.get('value'), this);
+    addToSyntax(state, element);
+    return false;
   }
   ArrayExpression({get}, state) {
     const elements = toSyntax(get('elements'), this);
-    addToSyntax(state, '[', withComma(elements), ']');
-    return false;  
+    addToSyntax(state, '[', elements, ']');
+    return false;
   }
   AssignmentExpression(path, state) {
     return toOperatorExpression(path, state, this);
@@ -114,7 +118,7 @@ class OutputVisitor {
   BlockStatement({get}, state) {
     const body = toSyntax(get('body'), this);
     addToSyntax(state, '\n', withNothing(body), '\n');
-    return false;  
+    return false;
   }
   CallExpression({get}, state) {
     const callee = toSyntax(get('callee'), this);
@@ -124,17 +128,26 @@ class OutputVisitor {
     return false;
   }
   Comment(path, state) {
+    const {node: {value}} = path;
+    addToSyntax(state, "'", value, "\n");
     return false;
+  }
+  DECREMENT(path, state) {
+    addToSyntax(state, '--');
+  }
+  DimStatement(path, state) {
+    addToSyntax(state, 'dim');
   }
   DotMemberExpression(path, state) {
   }
   ElseStatement(path, state) {
-    addToSyntax(state, 'else');
+    addToSyntax(state, 'else ');
   }
   ElseIfStatement({get}, state) {
     const test = toSyntax(get('test'), this);
     const body = toSyntax(get('body'), this);
-
+    //NOTE: Brightscript documentation states that "then" is an optional keyword for
+    //      IF, ELSEIF, THEN, ENDIF block
     addToSyntax(state, 'else if', test, body);
     return false;
   }
@@ -144,11 +157,22 @@ class OutputVisitor {
   EQUAL({node: {value}}, state) {
     addToSyntax(state, '=');
   }
+  EXIT_FOR(path, state) {
+    addToSyntax(state, 'exit for')
+  }
   EXIT_WHILE(path, state) {
     addToSyntax(state, 'exit while');
   }
   EmptyStatement(path, state) {
     addToSyntax(state, '\n');
+  }
+  ForEachStatement(path, state) {
+    const {get} = path;
+    const counter = toSyntax(get('counter'), this);
+    const countExpression = toSyntax(get('countExpression'), this);
+    const body = toSyntax(get('body'), this);
+    addToSyntax(state, 'for each', counter, 'in ', countExpression, body, 'end for');
+    return false;
   }
   ForStatement(path, state) {
     const {get} = path;
@@ -156,8 +180,10 @@ class OutputVisitor {
     const body = toSyntax(get('body'), this);
     const counter = toSyntax(get('counter'), this);
     const init = toSyntax(get('init'), this);
+    const update = toSyntax(get('update'), this);
+    const explicitStep = update ? `step ${update}` : undefined;
 
-    addToSyntax(state, 'For', counter, (counter && init.length)?'=':'', init, 'to', test, body, 'end For');
+    addToSyntax(state, 'for', counter, (counter && init.length)?'=':'', init, 'to', test, explicitStep, body, 'end for');
     return false;
   }
   FunctionDeclaration(path, state) {
@@ -165,6 +191,11 @@ class OutputVisitor {
   }
   FunctionExpression(path, state) {
     return toSubFuncDefinition('function')(path, state, this);
+  }
+  GoToStatement(path, state) {
+    const {node: {id: {name}}} = path;
+    addToSyntax(state, 'goto', name);
+    return false;
   }
   GREATER_THAN(path, state) {
     addToSyntax(state, '>');
@@ -175,15 +206,28 @@ class OutputVisitor {
   Identifier({node:{name}}, state) {
     addToSyntax(state, name);
   }
-  IfStatement({get}, state) {
+  IfStatement(path, state) {
+    const {get, node:{consequent: {type}}} = path;
     //logic from here needs to apply to else if as well... refactor?
     const test = toSyntax(get('test'), this);
     const consequent = toSyntax(get('consequent'), this);
     const alternate = toSyntax(get('alternate'), this);
-    const blockForm = (alternate && alternate.length) || consequent.includes('\n');
+    const blockForm = type === 'BlockStatement';
     //still need to fix this.... bad way to determine block form
 
+    //NOTE: Brightscript documentation states that "then" is an optional keyword for
+    //      IF, ELSEIF, THEN, ENDIF block
     addToSyntax(state, 'if', test, consequent, withNothing(alternate), blockForm?'end if':'');
+    return false;
+  }
+  INCREMENT(path, state) {
+    addToSyntax(state, '++');
+  }
+  LabeledStatement(path, state) {
+    const {node: {label: {name}}} = path;
+    //TODO: Seems to be treating the line following the label as the body of the label statement.
+    const body = toSyntax(path.get('body'), this);
+    addToSyntax(state, name, ':\n', body)
     return false;
   }
   LESS_THAN(path, state) {
@@ -191,6 +235,9 @@ class OutputVisitor {
   }
   LESS_THAN_EQUAL(path, state) {
     addToSyntax(state, '<=');
+  }
+  LibraryStatement(path, state) {
+    addToSyntax(state, 'library');
   }
   Literal({node:{raw, value}}, state) {
     addToSyntax(state, value);
@@ -216,6 +263,27 @@ class OutputVisitor {
     const properties = toSyntax(get('properties'), this);
     addToSyntax(state, '{', withComma(properties), '}');
     return false;
+  }
+  OP_ASSIGNMENT_ADD(path, state) {
+    addToSyntax(state, '+=');
+  }
+  OP_ASSIGNMENT_SUBTRACT(path, state) {
+    addToSyntax(state, '-=');
+  }
+  OP_ASSIGNMENT_DIVISION(path, state) {
+    addToSyntax(state, '/=');
+  }
+  OP_ASSIGNMENT_INTEGER_DIVISION(path, state) {
+    addToSyntax(state, '\\=');
+  }
+  OP_ASSIGNMENT_MULTIPLY(path, state) {
+    addToSyntax(state, '*=');
+  }
+  OP_ASSIGNMENT_BITSHIFT_LEFT(path, state) {
+    addToSyntax(state, '<<=');
+  }
+  OP_ASSIGNMENT_BITSHIFT_RIGHT(path, state) {
+    addToSyntax(state, '>>=');
   }
   OP_MINUS(path, state) {
     addToSyntax(state, '-');
@@ -243,7 +311,7 @@ class OutputVisitor {
     const type = toSyntax(get('TypeAnnotation'), this);
     const value = toSyntax(get('value'), this);
 
-    addToSyntax(state, name, type, value?`=${value}`:'');
+    addToSyntax(state, name, value?`=${value}`:'', type);
     return false;
   }
   ParameterList({get}, state) {
@@ -265,9 +333,15 @@ class OutputVisitor {
     addToSyntax(state, '?', withSemiColon(value));
     return false;
   }
+  PostfixExpression({get}, state) {
+    const arg = toSyntax(get('argument'), this);
+    const operator = toSyntax(get('operator'), this);
+    addToSyntax(state, arg, operator);
+    return false;
+  }
   Program(path, state) {
   }
-  Property({get, node}, state) {
+  Property({get}, state) {
     const key = toSyntax(get('key'), this);
     const value = toSyntax(get('value'), this);
 
@@ -279,19 +353,25 @@ class OutputVisitor {
   }
   ReturnStatement(path, state) {
     //when we are not in a block, we need to have a space before us
-    addToSyntax(state, 'return');
+    const returnExpression = toSyntax(path.get('argument'), this);
+    const trailingComments = toSyntax(path.get('trailingComments'), this);
+    addToSyntax(state, 'return', returnExpression, ' ', trailingComments);
+    return false;
   }
   SubDeclaration(path, state) {
     return toSubFuncDefinition('sub')(path, state, this);
   }
   STRING_LITERAL({node: {loc: {source}}}, state) {
-    addToSyntax(state, source);    
+    addToSyntax(state, source);
+  }
+  StopStatement(path, state) {
+    addToSyntax(state, 'stop', '\n')
   }
   STOP(path, state) {
     addToSyntax(state, 'stop');
   }  
   TypeAnnotation({node:{value}}, state) {
-    addToSyntax(state, 'as', value);    
+    addToSyntax(state, ' as', value);
   }
   UnaryExpression(path, state) {
   }
